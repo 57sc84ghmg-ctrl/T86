@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>外資買賣超排行榜</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+
+  :root{
+    --bg-1:#FFE9C7;
+    --bg-2:#FFC98A;
+    --bg-3:#F2934A;
+    --cream:#FFF6E4;
+    --ink:#3B2410;
+    --buy:#1a7d3a;
+    --buy-bg:#E7F5EC;
+    --sell:#a8271f;
+    --sell-bg:#FBE9E7;
+    --maroon-dark:#5E1E1E;
+    --card:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    font-family:'Noto Sans TC', sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(120% 60% at 50% 0%, var(--bg-1) 0%, var(--bg-2) 45%, var(--bg-3) 75%, #D97324 100%);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+
+  .page{
+    width:100%;
+    max-width:480px;
+    padding:28px 0 56px;
+  }
+
+  .hero{
+    text-align:center;
+    padding:0 20px 8px;
+  }
+  .hero .icon{ font-size:40px; }
+  .hero h1{
+    font-family:'Baloo 2','Noto Sans TC',sans-serif;
+    font-size:22px;
+    margin:8px 0 4px;
+    color:var(--maroon-dark);
+  }
+  .hero p{
+    margin:0;
+    font-size:13px;
+    color:#8a5a2c;
+  }
+
+  .card{
+    background:var(--card);
+    border-radius:20px;
+    margin:16px 20px 0;
+    padding:18px 18px 20px;
+    box-shadow:0 12px 26px rgba(94,30,30,0.16);
+  }
+
+  .date-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .date-row .date-label{
+    font-size:13px;
+    color:#8a5a2c;
+  }
+  .date-row .date-value{
+    font-family:'Baloo 2','Noto Sans TC',sans-serif;
+    font-weight:700;
+    font-size:16px;
+    color:var(--maroon-dark);
+  }
+  .refresh-btn{
+    border:none;
+    background:var(--bg-2);
+    color:var(--maroon-dark);
+    padding:8px 14px;
+    border-radius:12px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+
+  .status{
+    margin:14px 20px 0;
+    padding:12px 14px;
+    border-radius:14px;
+    font-size:13.5px;
+    background:rgba(255,255,255,0.55);
+    color:var(--maroon-dark);
+    display:none;
+  }
+  .status.show{ display:block; }
+  .status.error{
+    background:#FBE2DE;
+    color:#8a2e1f;
+  }
+
+  .section-title{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:0 0 12px;
+    font-family:'Baloo 2','Noto Sans TC',sans-serif;
+    font-size:16px;
+  }
+  .section-title.buy{ color:var(--buy); }
+  .section-title.sell{ color:var(--sell); }
+
+  .rank-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+
+  .rank-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 12px;
+    border-radius:12px;
+  }
+  .rank-row.buy{ background:var(--buy-bg); }
+  .rank-row.sell{ background:var(--sell-bg); }
+
+  .rank-num{
+    width:22px;
+    text-align:center;
+    font-family:'Baloo 2','Noto Sans TC',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    color:#8a5a2c;
+    flex-shrink:0;
+  }
+  .rank-name{
+    flex:1;
+    min-width:0;
+  }
+  .rank-name .code{
+    font-size:11.5px;
+    color:#8a5a2c;
+  }
+  .rank-name .name{
+    font-size:14.5px;
+    font-weight:600;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .rank-val{
+    font-family:'Baloo 2','Noto Sans TC',sans-serif;
+    font-weight:700;
+    font-size:14.5px;
+    text-align:right;
+    flex-shrink:0;
+  }
+  .rank-val.buy{ color:var(--buy); }
+  .rank-val.sell{ color:var(--sell); }
+
+  .updated-note{
+    margin:14px 20px 0;
+    text-align:center;
+    font-size:11.5px;
+    color:#7a4a24;
+    opacity:0.85;
+  }
+
+  footer{
+    text-align:center;
+    font-size:11px;
+    color:#7a4a24;
+    margin-top:20px;
+    opacity:0.8;
+    padding:0 30px;
+    line-height:1.6;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hero">
+    <div class="icon">🌏💰</div>
+    <h1>外資買賣超排行榜</h1>
+    <p>台灣上市股票・外資及陸資淨買超 / 淨賣超 Top 10</p>
+  </div>
+
+  <div class="card">
+    <div class="date-row">
+      <div>
+        <div class="date-label">資料日期</div>
+        <div class="date-value" id="dateValue">查詢中…</div>
+      </div>
+      <button id="refreshBtn" class="refresh-btn">重新查詢</button>
+    </div>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <div class="card" id="buyCard" style="display:none;">
+    <div class="section-title buy">📈 外資買超 Top 10</div>
+    <div class="rank-list" id="buyList"></div>
+  </div>
+
+  <div class="card" id="sellCard" style="display:none;">
+    <div class="section-title sell">📉 外資賣超 Top 10</div>
+    <div class="rank-list" id="sellList"></div>
+  </div>
+
+  <div class="updated-note" id="updatedNote"></div>
+
+  <footer>資料來源：台灣證券交易所「三大法人買賣超日報」（外陸資不含外資自營商）・僅列出一般上市股票，已排除 ETF 及權證・僅供參考，不構成投資建議</footer>
+</div>
+
+<script>
+const dateValue = document.getElementById('dateValue');
+const refreshBtn = document.getElementById('refreshBtn');
+const statusEl = document.getElementById('status');
+const buyCard = document.getElementById('buyCard');
+const sellCard = document.getElementById('sellCard');
+const buyList = document.getElementById('buyList');
+const sellList = document.getElementById('sellList');
+const updatedNote = document.getElementById('updatedNote');
+
+function showStatus(msg, isError) {
+  statusEl.textContent = msg;
+  statusEl.className = 'status show' + (isError ? ' error' : '');
+}
+function hideStatus() {
+  statusEl.className = 'status';
+}
+
+function formatDateForApi(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}${m}${day}`;
+}
+
+function formatDateForDisplay(dateStr) {
+  // dateStr like "20260904" from TWSE response
+  if (!dateStr || dateStr.length !== 8) return dateStr;
+  const y = dateStr.slice(0, 4);
+  const m = dateStr.slice(4, 6);
+  const d = dateStr.slice(6, 8);
+  return `${y}/${m}/${d}`;
+}
+
+function parseNumber(str) {
+  return parseInt(String(str).replace(/,/g, ''), 10) || 0;
+}
+
+function isPlainListedStock(code) {
+  // Keep only 4-digit fully numeric codes that don't start with "00" (excludes most ETFs),
+  // and exclude anything containing letters (excludes warrants like 00632R, 00665L, T50...).
+  return /^[1-9][0-9]{3}$/.test(code);
+}
+
+async function fetchDay(dateObj) {
+  const dateStr = formatDateForApi(dateObj);
+  const url = `https://www.twse.com.tw/rwd/zh/fund/T86?date=${dateStr}&selectType=ALL&response=json`;
+  const resp = await fetch(url);
+  if (!resp.ok) {
+    throw new Error('network status ' + resp.status);
+  }
+  const json = await resp.json();
+  return json;
+}
+
+async function loadRanking() {
+  hideStatus();
+  buyCard.style.display = 'none';
+  sellCard.style.display = 'none';
+  dateValue.textContent = '查詢中…';
+  showStatus('查詢外資買賣超資料中，請稍候…', false);
+
+  try {
+    let json = null;
+    let triedDate = new Date();
+
+    // Try today, then walk backward up to 10 days to skip weekends/holidays
+    for (let i = 0; i < 10; i++) {
+      try {
+        const candidate = await fetchDay(triedDate);
+        if (candidate && candidate.stat === 'OK' && Array.isArray(candidate.data) && candidate.data.length > 0) {
+          json = candidate;
+          break;
+        }
+      } catch (e) {
+        console.warn('Fetch attempt failed for', formatDateForApi(triedDate), e);
+      }
+      triedDate.setDate(triedDate.getDate() - 1);
+    }
+
+    if (!json) {
+      throw new Error('no data found in the last 10 days');
+    }
+
+    const fields = json.fields;
+    const codeIdx = fields.indexOf('證券代號');
+    const nameIdx = fields.indexOf('證券名稱');
+    const foreignNetIdx = fields.indexOf('外陸資買賣超股數(不含外資自營商)');
+
+    if (codeIdx === -1 || nameIdx === -1 || foreignNetIdx === -1) {
+      throw new Error('expected fields not found in response');
+    }
+
+    const rows = json.data
+      .map(row => ({
+        code: row[codeIdx].trim(),
+        name: row[nameIdx].trim(),
+        net: parseNumber(row[foreignNetIdx])
+      }))
+      .filter(r => isPlainListedStock(r.code));
+
+    const buyTop = [...rows].sort((a, b) => b.net - a.net).slice(0, 10);
+    const sellTop = [...rows].sort((a, b) => a.net - b.net).slice(0, 10);
+
+    renderList(buyList, buyTop, 'buy');
+    renderList(sellList, sellTop, 'sell');
+
+    dateValue.textContent = formatDateForDisplay(json.date);
+    buyCard.style.display = 'block';
+    sellCard.style.display = 'block';
+    hideStatus();
+    updatedNote.textContent = '每個交易日盤後更新一次（約下午 4 點後）';
+  } catch (err) {
+    console.error('Foreign investor ranking lookup failed:', err);
+    dateValue.textContent = '查詢失敗';
+    showStatus('查詢時發生問題，請稍後再試一次。（詳細錯誤已印在瀏覽器主控台）', true);
+  }
+}
+
+function renderList(container, items, type) {
+  container.innerHTML = '';
+  items.forEach((item, i) => {
+    const row = document.createElement('div');
+    row.className = 'rank-row ' + type;
+    const sheets = (item.net / 1000).toLocaleString('zh-TW', { maximumFractionDigits: 0 });
+    row.innerHTML = `
+      <div class="rank-num">${i + 1}</div>
+      <div class="rank-name">
+        <div class="code">${item.code}</div>
+        <div class="name">${item.name}</div>
+      </div>
+      <div class="rank-val ${type}">${sheets} 張</div>
+    `;
+    container.appendChild(row);
+  });
+}
+
+refreshBtn.addEventListener('click', loadRanking);
+
+loadRanking();
+</script>
+</body>
+</html>
